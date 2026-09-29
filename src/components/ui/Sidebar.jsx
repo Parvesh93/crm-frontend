@@ -9,6 +9,7 @@ import {
   CircleDollarSign,
   WalletCards,
   Settings,
+  Target,
   LogOut,
   ChevronRight,
 } from "lucide-react";
@@ -26,6 +27,7 @@ function Sidebar() {
       label: "Workspace",
       items: [
         { name: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+        { name: "Leads", icon: Target, path: "/leads" },
         { name: "Clients", icon: Users, path: "/clients" },
         { name: "Projects", icon: BriefcaseBusiness, path: "/projects" },
         { name: "Tasks", icon: ListTodo, path: "/tasks" },
