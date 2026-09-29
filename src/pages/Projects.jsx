@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 import { Plus, Search, Eye, Trash2 } from "lucide-react";
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
+import useAuthStore from "../store/authStore";
 
 function Projects() {
+  const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = user?.role === "super_admin";
   const [projects, setProjects] = useState([]);
   const [platforms, setPlatforms] = useState([]);
   const [search, setSearch] = useState("");
@@ -66,7 +69,7 @@ function Projects() {
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
-          <p className="text-gray-500 mt-1">Separate work by platform, team, project value, and status.</p>
+          <p className="text-gray-500 mt-1">Separate work by platform, team, and status.</p>
         </div>
         <Link to="/add-project" className="bg-black text-white px-4 py-2 rounded-md flex items-center gap-2">
           <Plus size={16} /> Add Project
@@ -114,7 +117,7 @@ function Projects() {
                   <th className="px-6 py-4 font-medium">Client</th>
                   <th className="px-6 py-4 font-medium">Platform</th>
                   <th className="px-6 py-4 font-medium">Team</th>
-                  <th className="px-6 py-4 font-medium">Value</th>
+                  {isSuperAdmin && <th className="px-6 py-4 font-medium">Value</th>}
                   <th className="px-6 py-4 font-medium">Status</th>
                   <th className="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
@@ -133,7 +136,7 @@ function Projects() {
                         ? project.teamMembers.map((member) => member.name).join(", ")
                         : "-"}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">₹{Number(project.budget || 0).toLocaleString("en-IN")}</td>
+                    {isSuperAdmin && <td className="px-6 py-4 text-gray-700">₹{Number(project.budget || 0).toLocaleString("en-IN")}</td>}
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass(project.status)}`}>
                         {project.status}
