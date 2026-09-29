@@ -52,13 +52,27 @@ function Dashboard() {
   />
 
   <StatCard
-    title="Revenue"
+    title="Received"
     value={`₹${Number(
       stats.totalRevenue || 0
     ).toLocaleString("en-IN")}`}
-    subtitle="Total project value"
+    subtitle="Actual payments received"
   />
 </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <StatCard
+          title="Total Project Value"
+          value={`₹${Number(stats.totalProjectValue || 0).toLocaleString("en-IN")}`}
+          subtitle="Combined value of all projects"
+        />
+
+        <StatCard
+          title="Outstanding"
+          value={`₹${Number(stats.totalOutstanding || 0).toLocaleString("en-IN")}`}
+          subtitle="Project value still to be collected"
+        />
+      </div>
 
       <div className="bg-white border border-gray-200 rounded-2xl p-8 mt-8">
         <h2 className="text-2xl font-semibold tracking-tight">
