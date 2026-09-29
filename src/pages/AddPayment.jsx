@@ -6,7 +6,7 @@ import DashboardLayout from "../layout/DashboardLayout";
 function AddPayment() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]);\n  const [platforms, setPlatforms] = useState([]);\n  const [allocationTouched, setAllocationTouched] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     project: "",
@@ -84,7 +84,7 @@ function AddPayment() {
             <label className="block mb-1 font-medium">Project *</label>
             <select
               value={formData.project}
-              onChange={(e) => setFormData((prev) => ({ ...prev, project: e.target.value, allocations: [] }))}
+              onChange={(e) => { setAllocationTouched(false); setFormData((prev) => ({ ...prev, project: e.target.value, allocations: [] })); }}
               className="w-full border border-gray-200 p-3 rounded-xl"
               required
             >
@@ -101,6 +101,7 @@ function AddPayment() {
             <div className="bg-gray-50 rounded-xl p-4 text-sm">
               <p><span className="text-gray-500">Platform:</span> <strong>{selectedProject.platform?.name || selectedProject.type || "-"}</strong></p>
               <p className="mt-1"><span className="text-gray-500">Project Value:</span> <strong>₹{Number(selectedProject.budget || 0).toLocaleString("en-IN")}</strong></p>
+              <p className="mt-1"><span className="text-gray-500">Default Rule:</span> <strong>{(selectedPlatform?.defaultAllocations || []).length ? selectedPlatform.defaultAllocations.map((rule) => (rule.user?.name || "User") + " " + rule.percentage + "%").join(", ") : "No default allocation configured"}</strong></p>
             </div>
           )}
 
@@ -129,9 +130,16 @@ function AddPayment() {
             <div className="flex justify-between items-end mb-2">
               <div>
                 <label className="block font-medium">Team Allocation</label>
-                <p className="text-xs text-gray-500">Leave any remaining amount unallocated as company share.</p>
+                <p className="text-xs text-gray-500">Platform defaults are applied automatically. You can override any amount for this payment.</p>
               </div>
-              <p className="text-sm font-semibold">Remaining: ₹{remaining.toLocaleString("en-IN")}</p>
+              <div className="flex items-center gap-3">
+                {(selectedPlatform?.defaultAllocations || []).length > 0 && (
+                  <button type="button" onClick={() => { setAllocationTouched(false); setFormData((prev) => ({ ...prev, allocations: defaultAllocations })); }} className="text-sm px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">
+                    Apply Default Rule
+                  </button>
+                )}
+                <p className="text-sm font-semibold">Company: ₹{remaining.toLocaleString("en-IN")}</p>
+              </div>
             </div>
 
             <div className="space-y-3">
