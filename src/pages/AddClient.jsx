@@ -1,39 +1,58 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
 
 function AddClient() {
   const navigate = useNavigate();
-
+  const [platforms, setPlatforms] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     company: "",
     email: "",
     phone: "",
     website: "",
-    serviceType: "Shopify",
+    platforms: [],
+    teamMembers: [],
     status: "Lead",
     notes: "",
   });
 
-  const [error, setError] = useState("");
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [platformsRes, usersRes] = await Promise.all([
+          API.get("/platforms"),
+          API.get("/users"),
+        ]);
+        setPlatforms(platformsRes.data.platforms || []);
+        setUsers(usersRes.data.users || []);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load form data");
+      }
+    };
+    load();
+  }, []);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const toggleArrayValue = (field, id) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: prev[field].includes(id)
+        ? prev[field].filter((value) => value !== id)
+        : [...prev[field], id],
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
-
     try {
       await API.post("/clients", formData);
-
       navigate("/clients");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to add client");
@@ -42,138 +61,83 @@ function AddClient() {
 
   return (
     <DashboardLayout>
-    <div className="p-6 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6">Add Client</h1>
+      <div className="max-w-3xl">
+        <h1 className="text-3xl font-bold mb-2">Add Client</h1>
+        <p className="text-gray-500 mb-6">A client can belong to multiple service platforms and teams.</p>
 
-      {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+        {error && <div className="bg-red-100 text-red-700 p-3 rounded-xl mb-4">{error}</div>}
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow space-y-4"
-      >
-        <div>
-          <label className="block mb-1 font-medium">Client Name *</label>
-          <input
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-            placeholder="Rahul Sharma"
+        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 p-6 rounded-2xl space-y-5">
+          <Input label="Client Name *" name="name" value={formData.name} onChange={handleChange} />
+          <Input label="Company" name="company" value={formData.company} onChange={handleChange} />
+          <Input label="Email *" name="email" type="email" value={formData.email} onChange={handleChange} />
+          <Input label="Phone" name="phone" value={formData.phone} onChange={handleChange} />
+          <Input label="Website" name="website" value={formData.website} onChange={handleChange} />
+
+          <CheckboxGroup
+            label="Platforms / Services"
+            items={platforms}
+            selected={formData.platforms}
+            onToggle={(id) => toggleArrayValue("platforms", id)}
+            subtitle={(item) => item.description}
           />
-        </div>
 
-        <div>
-          <label className="block mb-1 font-medium">Company</label>
-          <input
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-            placeholder="RS Fashion Store"
+          <CheckboxGroup
+            label="Responsible Team"
+            items={users}
+            selected={formData.teamMembers}
+            onToggle={(id) => toggleArrayValue("teamMembers", id)}
+            subtitle={(item) => item.designation || item.role}
           />
-        </div>
 
-        <div>
-          <label className="block mb-1 font-medium">Email *</label>
-          <input
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-            placeholder="client@example.com"
-          />
-        </div>
+          <div>
+            <label className="block mb-1 font-medium">Status</label>
+            <select name="status" value={formData.status} onChange={handleChange}
+              className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:border-black">
+              <option value="Lead">Lead</option>
+              <option value="Active">Active</option>
+              <option value="Completed">Completed</option>
+              <option value="Lost">Lost</option>
+            </select>
+          </div>
 
-        <div>
-          <label className="block mb-1 font-medium">Phone</label>
-          <input
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-            placeholder="+91 9876543210"
-          />
-        </div>
+          <div>
+            <label className="block mb-1 font-medium">Notes</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} rows="4"
+              className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:border-black" />
+          </div>
 
-        <div>
-          <label className="block mb-1 font-medium">Website</label>
-          <input
-            name="website"
-            value={formData.website}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-            placeholder="https://example.com"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Service Type</label>
-          <select
-            name="serviceType"
-            value={formData.serviceType}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-          >
-            <option value="Shopify">Shopify</option>
-            <option value="WordPress">WordPress</option>
-            <option value="WooCommerce">WooCommerce</option>
-            <option value="Laravel">Laravel</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Status</label>
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-          >
-            <option value="Lead">Lead</option>
-            <option value="Active">Active</option>
-            <option value="Completed">Completed</option>
-            <option value="Lost">Lost</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Notes</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            className="w-full border p-3 rounded"
-            rows="4"
-            placeholder="Client requirements or discussion notes..."
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <button className="bg-black text-white px-6 py-3 rounded font-semibold">
-            Save Client
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate("/clients")}
-            className="bg-gray-200 px-6 py-3 rounded font-semibold"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+          <div className="flex gap-3">
+            <button className="bg-black text-white px-6 py-3 rounded-xl font-semibold">Save Client</button>
+            <button type="button" onClick={() => navigate("/clients")} className="bg-gray-100 px-6 py-3 rounded-xl font-semibold">Cancel</button>
+          </div>
+        </form>
+      </div>
     </DashboardLayout>
   );
+}
 
-  
+function Input({ label, name, value, onChange, type = "text" }) {
+  return <div><label className="block mb-1 font-medium">{label}</label><input name={name} type={type} value={value} onChange={onChange} className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:border-black" /></div>;
+}
+
+function CheckboxGroup({ label, items, selected, onToggle, subtitle }) {
+  return (
+    <div>
+      <label className="block mb-2 font-medium">{label}</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {items.map((item) => (
+          <label key={item._id} className="flex items-center gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer">
+            <input type="checkbox" checked={selected.includes(item._id)} onChange={() => onToggle(item._id)} />
+            <span>
+              <span className="block font-medium">{item.name}</span>
+              {subtitle(item) && <span className="text-xs text-gray-500">{subtitle(item)}</span>}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default AddClient;
