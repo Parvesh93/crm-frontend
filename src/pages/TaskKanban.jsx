@@ -97,6 +97,36 @@ function TaskKanban() {
 
   const columns = ["Pending", "In Progress", "Completed"];
 
+  const statusTheme = {
+    Pending: {
+      column: "bg-amber-50/60 border-amber-200",
+      header: "text-amber-900",
+      count: "bg-amber-100 text-amber-700",
+      empty: "bg-amber-50 text-amber-500 border border-amber-100",
+      card: "bg-white border-amber-200 hover:border-amber-300 hover:shadow-sm",
+      select: "bg-amber-50 border-amber-200 text-amber-800 focus:border-amber-400",
+      accent: "bg-amber-400",
+    },
+    "In Progress": {
+      column: "bg-blue-50/60 border-blue-200",
+      header: "text-blue-900",
+      count: "bg-blue-100 text-blue-700",
+      empty: "bg-blue-50 text-blue-500 border border-blue-100",
+      card: "bg-white border-blue-200 hover:border-blue-300 hover:shadow-sm",
+      select: "bg-blue-50 border-blue-200 text-blue-800 focus:border-blue-400",
+      accent: "bg-blue-500",
+    },
+    Completed: {
+      column: "bg-emerald-50/60 border-emerald-200",
+      header: "text-emerald-900",
+      count: "bg-emerald-100 text-emerald-700",
+      empty: "bg-emerald-50 text-emerald-500 border border-emerald-100",
+      card: "bg-white border-emerald-200 hover:border-emerald-300 hover:shadow-sm",
+      select: "bg-emerald-50 border-emerald-200 text-emerald-800 focus:border-emerald-400",
+      accent: "bg-emerald-500",
+    },
+  };
+
   const priorityClass = (priority) => {
     if (priority === "High") return "bg-red-100 text-red-700";
     if (priority === "Medium") return "bg-yellow-100 text-yellow-700";
@@ -185,30 +215,40 @@ function TaskKanban() {
             (task) => task.status === column
           );
 
+          const theme = statusTheme[column];
+
           return (
             <div
               key={column}
-              className="bg-white border border-gray-200 rounded-2xl p-5"
+              className={`border rounded-2xl p-5 transition ${theme.column}`}
             >
               <div className="flex justify-between items-center mb-5">
-                <h2 className="font-semibold text-lg">{column}</h2>
+                <div className="flex items-center gap-2.5">
+                  <span className={`w-2.5 h-2.5 rounded-full ${theme.accent}`} />
+                  <h2 className={`font-semibold text-lg ${theme.header}`}>
+                    {column}
+                  </h2>
+                </div>
 
-                <span className="bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1 rounded-full">
+                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${theme.count}`}>
                   {columnTasks.length}
                 </span>
               </div>
 
               <div className="space-y-4">
                 {columnTasks.length === 0 ? (
-                  <div className="text-sm text-gray-400 bg-gray-50 rounded-xl p-4">
+                  <div className={`text-sm rounded-xl p-4 ${theme.empty}`}>
                     No tasks
                   </div>
                 ) : (
                   columnTasks.map((task) => (
                     <div
                       key={task._id}
-                      className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50"
+                      className={`relative overflow-hidden border rounded-xl p-4 transition ${theme.card}`}
                     >
+                      <span
+                        className={`absolute left-0 top-0 bottom-0 w-1 ${theme.accent}`}
+                      />
                       <div className="flex justify-between items-start gap-3">
                         <div>
                           <Link
@@ -265,7 +305,7 @@ function TaskKanban() {
                           onChange={(e) =>
                             updateTaskStatus(task._id, e.target.value)
                           }
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-black"
+                          className={`w-full border rounded-lg px-3 py-2 text-sm font-medium outline-none transition ${theme.select}`}
                         >
                           <option value="Pending">Pending</option>
                           <option value="In Progress">In Progress</option>
