@@ -23,14 +23,25 @@ import EditUser from "./pages/EditUser";
 import Earnings from "./pages/Earnings";
 import AddPayment from "./pages/AddPayment";
 import Settings from "./pages/Settings";
+import useAuthStore from "./store/authStore";
+
+function RootRedirect() {
+  const token = useAuthStore((state) => state.token);
+  return <Navigate to={token ? "/dashboard" : "/login"} replace />;
+}
+
+function PublicOnlyRoute({ children }) {
+  const token = useAuthStore((state) => state.token);
+  return token ? <Navigate to="/dashboard" replace /> : children;
+}
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<RootRedirect />} />
 
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
         <Route path="/register" element={<Register />} />
 
         <Route element={<ProtectedRoute />}>
