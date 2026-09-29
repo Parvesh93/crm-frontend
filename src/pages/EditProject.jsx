@@ -20,6 +20,8 @@ function EditProject() {
     budget: "",
     startDate: "",
     deadline: "",
+    paymentDueDate: "",
+    paymentTerms: "",
     status: "Pending",
     notes: "",
   });
@@ -45,6 +47,8 @@ function EditProject() {
           budget: project.budget || "",
           startDate: project.startDate ? project.startDate.split("T")[0] : "",
           deadline: project.deadline ? project.deadline.split("T")[0] : "",
+          paymentDueDate: project.paymentDueDate ? project.paymentDueDate.split("T")[0] : "",
+          paymentTerms: project.paymentTerms || "",
           status: project.status || "Pending",
           notes: project.notes || "",
         });
@@ -128,6 +132,11 @@ function EditProject() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Start Date" name="startDate" type="date" value={formData.startDate} onChange={handleChange} />
             <Input label="Deadline" name="deadline" type="date" value={formData.deadline} onChange={handleChange} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="Payment Due Date" name="paymentDueDate" type="date" value={formData.paymentDueDate} onChange={handleChange} />
+            <Input label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={handleChange} />
           </div>
 
           <Select label="Status" name="status" value={formData.status} onChange={handleChange}>
