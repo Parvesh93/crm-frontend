@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
+import useAuthStore from "../store/authStore";
 
 const STAGES = [
   "New Lead",
@@ -25,6 +26,8 @@ const SOURCES = [
 ];
 
 function AddLead() {
+  const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = user?.role === "super_admin";
   const navigate = useNavigate();
   const [platforms, setPlatforms] = useState([]);
   const [users, setUsers] = useState([]);
@@ -70,11 +73,16 @@ function AddLead() {
     setError("");
 
     try {
-      await API.post("/leads", {
+      const payload = {
         ...formData,
-        estimatedValue: Number(formData.estimatedValue || 0),
         probability: Number(formData.probability || 0),
-      });
+      };
+      if (isSuperAdmin) {
+        payload.estimatedValue = Number(formData.estimatedValue || 0);
+      } else {
+        delete payload.estimatedValue;
+      }
+      await API.post("/leads", payload);
       navigate("/leads");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create lead");
@@ -133,14 +141,16 @@ function AddLead() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              label="Estimated Value"
-              name="estimatedValue"
-              type="number"
-              min="0"
-              value={formData.estimatedValue}
-              onChange={handleChange}
-            />
+            {isSuperAdmin && (
+              <Input
+                label="Estimated Value"
+                name="estimatedValue"
+                type="number"
+                min="0"
+                value={formData.estimatedValue}
+                onChange={handleChange}
+              />
+            )}
 
             <Input
               label="Probability %"
