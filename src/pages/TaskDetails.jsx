@@ -10,6 +10,7 @@ import {
   Calendar,
   FolderKanban,
   Flag,
+  UserRound,
 } from "lucide-react";
 
 import API from "../api/axios";
@@ -38,6 +39,15 @@ function TaskDetails() {
   useEffect(() => {
     fetchTask();
   }, [id]);
+
+  const updateStatus = async (status) => {
+    try {
+      const res = await API.put(`/tasks/${id}`, { status });
+      setTask((current) => ({ ...current, ...(res.data.task || {}), status }));
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to update task");
+    }
+  };
 
   if (loading) {
     return (
@@ -81,12 +91,18 @@ function TaskDetails() {
             </p>
           </div>
 
-          <span className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-semibold">
-            {task.status}
-          </span>
+          <select
+            value={task.status}
+            onChange={(e) => updateStatus(e.target.value)}
+            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold outline-none border border-gray-200"
+          >
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-8">
           <InfoCard
             icon={FolderKanban}
             label="Project"
@@ -102,13 +118,13 @@ function TaskDetails() {
           <InfoCard
             icon={Calendar}
             label="Due Date"
-            value={
-              task.dueDate
-                ? new Date(
-                    task.dueDate
-                  ).toLocaleDateString()
-                : "-"
-            }
+            value={task.dueDate ? new Date(task.dueDate).toLocaleDateString("en-IN") : "-"}
+          />
+
+          <InfoCard
+            icon={UserRound}
+            label="Assigned To"
+            value={task.assignedTo?.name || "Unassigned"}
           />
         </div>
 
