@@ -19,8 +19,11 @@ import { Link } from "react-router-dom";
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
 import StatCard from "../components/ui/StatCard";
+import useAuthStore from "../store/authStore";
 
 function Dashboard() {
+  const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = user?.role === "super_admin";
   const [stats, setStats] = useState({
     totalClients: 0,
     activeProjects: 0,
@@ -111,19 +114,38 @@ function Dashboard() {
               icon={BriefcaseBusiness}
             />
 
-            <StatCard
-              title="Revenue Received"
-              value={money(stats.totalRevenue)}
-              subtitle="Actual collections"
-              icon={CircleDollarSign}
-            />
+            {isSuperAdmin ? (
+              <>
+                <StatCard
+                  title="Revenue Received"
+                  value={money(stats.totalRevenue)}
+                  subtitle="Actual collections"
+                  icon={CircleDollarSign}
+                />
 
-            <StatCard
-              title="Outstanding"
-              value={money(stats.totalOutstanding)}
-              subtitle="Still to be collected"
-              icon={WalletCards}
-            />
+                <StatCard
+                  title="Outstanding"
+                  value={money(stats.totalOutstanding)}
+                  subtitle="Still to be collected"
+                  icon={WalletCards}
+                />
+              </>
+            ) : (
+              <>
+                <StatCard
+                  title="Open Tasks"
+                  value={stats.openTasks || 0}
+                  subtitle="Pending + in progress"
+                  icon={ListTodo}
+                />
+                <StatCard
+                  title="Open Leads"
+                  value={stats.openLeads || 0}
+                  subtitle="Active sales opportunities"
+                  icon={Target}
+                />
+              </>
+            )}
           </section>
 
           <section className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -132,11 +154,19 @@ function Dashboard() {
               value={stats.openLeads || 0}
               helper="Active sales opportunities"
             />
-            <MiniCard
-              label="Pipeline Value"
-              value={money(stats.pipelineValue)}
-              helper="Potential business value"
-            />
+            {isSuperAdmin ? (
+              <MiniCard
+                label="Pipeline Value"
+                value={money(stats.pipelineValue)}
+                helper="Potential business value"
+              />
+            ) : (
+              <MiniCard
+                label="Completed Projects"
+                value={stats.completedProjects || 0}
+                helper="Delivered projects"
+              />
+            )}
             <MiniCard
               label="Follow-ups Today"
               value={stats.followUpsToday || 0}
@@ -190,16 +220,18 @@ function Dashboard() {
                 />
               </div>
 
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FinanceMetric
-                  label="Pipeline Value"
-                  value={money(stats.pipelineValue)}
-                />
-                <FinanceMetric
-                  label="Weighted Pipeline"
-                  value={money(stats.weightedPipelineValue)}
-                />
-              </div>
+              {isSuperAdmin && (
+                <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FinanceMetric
+                    label="Pipeline Value"
+                    value={money(stats.pipelineValue)}
+                  />
+                  <FinanceMetric
+                    label="Weighted Pipeline"
+                    value={money(stats.weightedPipelineValue)}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="bg-white border border-slate-200/80 rounded-2xl p-6">
@@ -270,6 +302,8 @@ function Dashboard() {
             </div>
           </section>
 
+          {isSuperAdmin && (
+            <>
           <section className="mt-6 grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
             <div className="bg-white border border-slate-200/80 rounded-2xl p-6">
               <div className="flex items-start justify-between gap-4 mb-6">
@@ -345,6 +379,9 @@ function Dashboard() {
             </div>
           </section>
 
+            </>
+          )}
+
           <section className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
             <ActivityPanel
               title="Recent projects"
@@ -371,9 +408,11 @@ function Dashboard() {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold text-slate-800">
-                          {money(project.budget)}
-                        </p>
+                        {isSuperAdmin && (
+                          <p className="text-sm font-semibold text-slate-800">
+                            {money(project.budget)}
+                          </p>
+                        )}
                         <p className="text-[11px] text-slate-400 mt-1">
                           {project.status}
                         </p>
@@ -384,6 +423,7 @@ function Dashboard() {
               )}
             </ActivityPanel>
 
+            {isSuperAdmin && (
             <ActivityPanel
               title="Recent collections"
               subtitle="Latest payments received"
@@ -424,6 +464,7 @@ function Dashboard() {
                 </div>
               )}
             </ActivityPanel>
+            )}
           </section>
 
           <section className="mt-6 bg-white border border-slate-200/80 rounded-2xl p-6">
