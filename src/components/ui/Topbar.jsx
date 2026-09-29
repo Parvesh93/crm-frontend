@@ -11,6 +11,7 @@ import useAuthStore from "../../store/authStore";
 const pageTitles = {
   "/dashboard": "Overview",
   "/clients": "Clients",
+  "/leads": "Leads",
   "/projects": "Projects",
   "/tasks": "Tasks",
   "/task-board": "Task Board",
