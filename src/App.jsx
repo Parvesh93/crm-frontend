@@ -24,6 +24,9 @@ import Earnings from "./pages/Earnings";
 import AddPayment from "./pages/AddPayment";
 import Settings from "./pages/Settings";
 import Receivables from "./pages/Receivables";
+import Leads from "./pages/Leads";
+import AddLead from "./pages/AddLead";
+import LeadDetails from "./pages/LeadDetails";
 import useAuthStore from "./store/authStore";
 
 function RootRedirect() {
@@ -70,6 +73,9 @@ function App() {
 <Route path="/add-payment" element={<AddPayment />} />
 <Route path="/settings" element={<Settings />} />
 <Route path="/receivables" element={<Receivables />} />
+<Route path="/leads" element={<Leads />} />
+<Route path="/add-lead" element={<AddLead />} />
+<Route path="/leads/:id" element={<LeadDetails />} />
 </Route>
       </Routes>
     </BrowserRouter>
