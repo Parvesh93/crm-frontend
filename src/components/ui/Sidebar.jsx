@@ -76,7 +76,7 @@ function Sidebar() {
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-5">
+      <nav className="app-sidebar-scroll flex-1 overflow-y-auto px-3 py-5">
         <div className="space-y-6">
           {menuGroups.map((group) => (
             <div key={group.label}>
