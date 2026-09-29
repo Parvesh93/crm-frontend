@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
+import useAuthStore from "../store/authStore";
 
 const STAGES = [
   "New Lead",
@@ -25,6 +26,8 @@ const STAGES = [
 ];
 
 function LeadDetails() {
+  const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = user?.role === "super_admin";
   const { id } = useParams();
   const navigate = useNavigate();
   const [lead, setLead] = useState(null);
@@ -54,7 +57,7 @@ function LeadDetails() {
       setConvertData((prev) => ({
         ...prev,
         projectTitle: data.company || data.name || "",
-        projectValue: data.estimatedValue || "",
+        projectValue: isSuperAdmin ? data.estimatedValue || "" : "",
       }));
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load lead");
@@ -88,10 +91,16 @@ function LeadDetails() {
   const convertLead = async () => {
     setError("");
     try {
-      const res = await API.post(`/leads/${id}/convert`, {
-        ...convertData,
-        projectValue: Number(convertData.projectValue || 0),
-      });
+      const payload = { ...convertData };
+      if (isSuperAdmin) {
+        payload.projectValue = Number(convertData.projectValue || 0);
+      } else {
+        delete payload.projectValue;
+        delete payload.paymentDueDate;
+        delete payload.paymentTerms;
+      }
+
+      const res = await API.post(`/leads/${id}/convert`, payload);
 
       if (res.data.project?._id) {
         navigate(`/projects/${res.data.project._id}`);
@@ -163,7 +172,9 @@ function LeadDetails() {
           <Info icon={Globe} label="Website" value={lead.website || "-"} />
           <Info icon={BriefcaseBusiness} label="Platform" value={lead.platform?.name || "-"} />
           <Info icon={UserRound} label="Owner" value={lead.owner?.name || "Unassigned"} />
-          <Info icon={IndianRupee} label="Estimated Value" value={money(lead.estimatedValue)} />
+          {isSuperAdmin && (
+            <Info icon={IndianRupee} label="Estimated Value" value={money(lead.estimatedValue)} />
+          )}
           <Info
             icon={CalendarClock}
             label="Next Follow-up"
@@ -231,14 +242,16 @@ function LeadDetails() {
                       setConvertData((prev) => ({ ...prev, projectTitle: e.target.value }))
                     }
                   />
-                  <Input
-                    label="Project Value"
-                    type="number"
-                    value={convertData.projectValue}
-                    onChange={(e) =>
-                      setConvertData((prev) => ({ ...prev, projectValue: e.target.value }))
-                    }
-                  />
+                  {isSuperAdmin && (
+                    <Input
+                      label="Project Value"
+                      type="number"
+                      value={convertData.projectValue}
+                      onChange={(e) =>
+                        setConvertData((prev) => ({ ...prev, projectValue: e.target.value }))
+                      }
+                    />
+                  )}
                   <Input
                     label="Deadline"
                     type="date"
@@ -247,25 +260,29 @@ function LeadDetails() {
                       setConvertData((prev) => ({ ...prev, deadline: e.target.value }))
                     }
                   />
-                  <Input
-                    label="Payment Due Date"
-                    type="date"
-                    value={convertData.paymentDueDate}
-                    onChange={(e) =>
-                      setConvertData((prev) => ({ ...prev, paymentDueDate: e.target.value }))
-                    }
-                  />
+                  {isSuperAdmin && (
+                    <Input
+                      label="Payment Due Date"
+                      type="date"
+                      value={convertData.paymentDueDate}
+                      onChange={(e) =>
+                        setConvertData((prev) => ({ ...prev, paymentDueDate: e.target.value }))
+                      }
+                    />
+                  )}
                 </div>
 
-                <div className="mt-4">
-                  <Input
-                    label="Payment Terms"
-                    value={convertData.paymentTerms}
-                    onChange={(e) =>
-                      setConvertData((prev) => ({ ...prev, paymentTerms: e.target.value }))
-                    }
-                  />
-                </div>
+                {isSuperAdmin && (
+                  <div className="mt-4">
+                    <Input
+                      label="Payment Terms"
+                      value={convertData.paymentTerms}
+                      onChange={(e) =>
+                        setConvertData((prev) => ({ ...prev, paymentTerms: e.target.value }))
+                      }
+                    />
+                  </div>
+                )}
 
                 <div className="mt-4">
                   <p className="text-sm font-medium text-slate-700 mb-2">Project Team</p>
