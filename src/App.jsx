@@ -22,6 +22,7 @@ import AddUser from "./pages/AddUser";
 import EditUser from "./pages/EditUser";
 import Earnings from "./pages/Earnings";
 import AddPayment from "./pages/AddPayment";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
 <Route path="/users/:id/edit" element={<EditUser />} />
 <Route path="/earnings" element={<Earnings />} />
 <Route path="/add-payment" element={<AddPayment />} />
+<Route path="/settings" element={<Settings />} />
 </Route>
       </Routes>
     </BrowserRouter>
