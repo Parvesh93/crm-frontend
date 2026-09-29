@@ -11,6 +11,9 @@ import {
   UserPlus,
   ReceiptIndianRupee,
   FolderPlus,
+  Target,
+  CalendarClock,
+  AlertTriangle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import API from "../api/axios";
@@ -29,6 +32,12 @@ function Dashboard() {
     completedTasks: 0,
     recentProjects: [],
     recentPayments: [],
+    openLeads: 0,
+    pipelineValue: 0,
+    weightedPipelineValue: 0,
+    followUpsToday: 0,
+    overdueFollowUps: 0,
+    recentLeads: [],
   });
 
   const [loading, setLoading] = useState(true);
@@ -74,6 +83,7 @@ function Dashboard() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <QuickAction to="/add-lead" icon={Target} label="New Lead" />
           <QuickAction to="/add-client" icon={UserPlus} label="New Client" />
           <QuickAction to="/add-project" icon={FolderPlus} label="New Project" />
           <QuickAction to="/add-task" icon={Plus} label="Add Tasks" primary />
@@ -118,25 +128,146 @@ function Dashboard() {
 
           <section className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <MiniCard
-              label="Project Value"
-              value={money(stats.totalProjectValue)}
-              helper="Total contracted work"
+              label="Open Leads"
+              value={stats.openLeads || 0}
+              helper="Active sales opportunities"
             />
             <MiniCard
-              label="Open Tasks"
-              value={stats.openTasks || 0}
-              helper="Pending + in progress"
+              label="Pipeline Value"
+              value={money(stats.pipelineValue)}
+              helper="Potential business value"
             />
             <MiniCard
-              label="Completed Tasks"
-              value={stats.completedTasks || 0}
-              helper="Finished tasks"
+              label="Follow-ups Today"
+              value={stats.followUpsToday || 0}
+              helper="Sales actions due today"
             />
             <MiniCard
-              label="Completed Projects"
-              value={stats.completedProjects || 0}
-              helper="Delivered projects"
+              label="Overdue Follow-ups"
+              value={stats.overdueFollowUps || 0}
+              helper="Need immediate attention"
+              danger
             />
+          </section>
+
+          <section className="mt-6 grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-6">
+              <div className="flex items-start justify-between gap-4 mb-5">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Sales pipeline
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Follow-ups and active opportunities that need attention.
+                  </p>
+                </div>
+
+                <Link
+                  to="/leads"
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-900 inline-flex items-center gap-1"
+                >
+                  Open pipeline
+                  <ArrowUpRight size={14} />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <SalesMetric
+                  icon={Target}
+                  label="Open Leads"
+                  value={stats.openLeads || 0}
+                />
+                <SalesMetric
+                  icon={CalendarClock}
+                  label="Today"
+                  value={stats.followUpsToday || 0}
+                />
+                <SalesMetric
+                  icon={AlertTriangle}
+                  label="Overdue"
+                  value={stats.overdueFollowUps || 0}
+                  danger
+                />
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FinanceMetric
+                  label="Pipeline Value"
+                  value={money(stats.pipelineValue)}
+                />
+                <FinanceMetric
+                  label="Weighted Pipeline"
+                  value={money(stats.weightedPipelineValue)}
+                />
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-6">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Follow-ups
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Next sales conversations.
+                  </p>
+                </div>
+
+                <Link
+                  to="/leads"
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-900"
+                >
+                  View all
+                </Link>
+              </div>
+
+              {(stats.recentLeads || []).length === 0 ? (
+                <EmptyState text="No active leads yet." />
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {stats.recentLeads.map((lead) => {
+                    const overdue =
+                      lead.nextFollowUp &&
+                      new Date(lead.nextFollowUp) < new Date();
+
+                    return (
+                      <Link
+                        key={lead._id}
+                        to={"/leads/" + lead._id}
+                        className="py-3.5 flex items-center justify-between gap-4 hover:bg-slate-50 -mx-2 px-2 rounded-lg transition"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">
+                            {lead.name}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 truncate">
+                            {lead.company || "No company"} · {lead.stage}
+                          </p>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <p
+                            className={
+                              "text-xs font-semibold " +
+                              (overdue ? "text-rose-600" : "text-slate-600")
+                            }
+                          >
+                            {lead.nextFollowUp
+                              ? new Date(
+                                  lead.nextFollowUp
+                                ).toLocaleDateString("en-IN")
+                              : "No follow-up"}
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            {lead.owner?.name || "Unassigned"}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="mt-6 grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
@@ -356,14 +487,48 @@ function QuickAction({ to, icon: Icon, label, primary }) {
   );
 }
 
-function MiniCard({ label, value, helper }) {
+function MiniCard({ label, value, helper, danger }) {
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl px-5 py-4">
-      <p className="text-xs font-medium text-slate-500">{label}</p>
-      <p className="text-xl font-semibold tracking-tight text-slate-900 mt-1.5">
+    <div
+      className={
+        "border rounded-2xl px-5 py-4 " +
+        (danger
+          ? "bg-rose-50 border-rose-100"
+          : "bg-white border-slate-200/80")
+      }
+    >
+      <p className={"text-xs font-medium " + (danger ? "text-rose-600" : "text-slate-500")}>
+        {label}
+      </p>
+      <p className={"text-xl font-semibold tracking-tight mt-1.5 " + (danger ? "text-rose-700" : "text-slate-900")}>
         {value}
       </p>
-      <p className="text-[11px] text-slate-400 mt-1">{helper}</p>
+      <p className={"text-[11px] mt-1 " + (danger ? "text-rose-400" : "text-slate-400")}>
+        {helper}
+      </p>
+    </div>
+  );
+}
+
+function SalesMetric({ icon: Icon, label, value, danger }) {
+  return (
+    <div
+      className={
+        "rounded-xl border p-4 " +
+        (danger
+          ? "bg-rose-50 border-rose-100"
+          : "bg-slate-50 border-slate-100")
+      }
+    >
+      <div className="flex items-center justify-between">
+        <p className={"text-xs " + (danger ? "text-rose-600" : "text-slate-500")}>
+          {label}
+        </p>
+        <Icon size={16} className={danger ? "text-rose-500" : "text-slate-400"} />
+      </div>
+      <p className={"text-2xl font-semibold mt-2 " + (danger ? "text-rose-700" : "text-slate-900")}>
+        {value}
+      </p>
     </div>
   );
 }
