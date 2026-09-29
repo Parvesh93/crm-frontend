@@ -152,7 +152,7 @@ function ProjectDetails() {
               <h2 className="font-semibold text-lg">Project Tasks</h2>
               <p className="text-sm text-gray-500">Tasks linked to this specific project.</p>
             </div>
-            <Link to="/add-task" className="bg-black text-white px-4 py-2 rounded-xl text-sm">Add Task</Link>
+            <Link to={`/add-task?project=${project._id}`} className="bg-black text-white px-4 py-2 rounded-xl text-sm">Add Tasks</Link>
           </div>
 
           {tasks.length === 0 ? (
