@@ -37,8 +37,12 @@ function Sidebar() {
     {
       label: "Business",
       items: [
-        { name: "Earnings", icon: CircleDollarSign, path: "/earnings" },
-        { name: "Receivables", icon: WalletCards, path: "/receivables" },
+        ...(user?.role === "super_admin"
+          ? [
+              { name: "Earnings", icon: CircleDollarSign, path: "/earnings" },
+              { name: "Receivables", icon: WalletCards, path: "/receivables" },
+            ]
+          : []),
         { name: "AI Tasks", icon: Sparkles, path: "/ai-task-generator" },
       ],
     },
@@ -46,7 +50,7 @@ function Sidebar() {
       label: "Manage",
       items: [
         { name: "Team", icon: UserRoundCog, path: "/users" },
-        { name: "Settings", icon: Settings, path: "/settings" },
+        ...(user?.role === "super_admin" ? [{ name: "Settings", icon: Settings, path: "/settings" }] : []),
       ],
     },
   ];
