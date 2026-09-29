@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
+import useAuthStore from "../store/authStore";
 
 const STAGES = [
   "New Lead",
@@ -23,6 +24,8 @@ const STAGES = [
 ];
 
 function Leads() {
+  const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = user?.role === "super_admin";
   const [leads, setLeads] = useState([]);
   const [platforms, setPlatforms] = useState([]);
   const [users, setUsers] = useState([]);
@@ -129,10 +132,10 @@ function Leads() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+      <div className={"grid grid-cols-1 gap-4 mb-5 " + (isSuperAdmin ? "sm:grid-cols-3" : "sm:grid-cols-1")}>
         <Stat label="Pipeline Leads" value={summary.total?.count || 0} />
-        <Stat label="Pipeline Value" value={money(summary.total?.value)} />
-        <Stat label="Weighted Value" value={money(summary.total?.weightedValue)} />
+        {isSuperAdmin && <Stat label="Pipeline Value" value={money(summary.total?.value)} />}
+        {isSuperAdmin && <Stat label="Weighted Value" value={money(summary.total?.weightedValue)} />}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-2 mb-5">
@@ -203,7 +206,7 @@ function Leads() {
                   <th className="px-5 py-3 font-semibold">Service</th>
                   <th className="px-5 py-3 font-semibold">Owner</th>
                   <th className="px-5 py-3 font-semibold">Stage</th>
-                  <th className="px-5 py-3 font-semibold">Value</th>
+                  {isSuperAdmin && <th className="px-5 py-3 font-semibold">Value</th>}
                   <th className="px-5 py-3 font-semibold">Follow-up</th>
                   <th className="px-5 py-3 font-semibold text-right">Actions</th>
                 </tr>
@@ -240,15 +243,17 @@ function Leads() {
                       </select>
                     </td>
 
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">
-                        <IndianRupee size={13} />
-                        {Number(lead.estimatedValue || 0).toLocaleString("en-IN")}
-                      </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        {lead.probability || 0}% probability
-                      </p>
-                    </td>
+                    {isSuperAdmin && (
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">
+                          <IndianRupee size={13} />
+                          {Number(lead.estimatedValue || 0).toLocaleString("en-IN")}
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          {lead.probability || 0}% probability
+                        </p>
+                      </td>
+                    )}
 
                     <td className="px-5 py-4">
                       <div className={
