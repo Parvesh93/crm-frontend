@@ -242,6 +242,23 @@ function TaskKanban() {
                         </p>
                       )}
 
+                      <div className="mt-3 flex items-center justify-between gap-3 text-xs">
+                        <span className="text-gray-500">
+                          {task.assignedTo?.name ? `Assigned to ${task.assignedTo.name}` : "Unassigned"}
+                        </span>
+                        <span className={
+                          task.status !== "Completed" &&
+                          task.dueDate &&
+                          new Date(task.dueDate) < new Date()
+                            ? "font-semibold text-red-600"
+                            : "text-gray-500"
+                        }>
+                          {task.dueDate
+                            ? new Date(task.dueDate).toLocaleDateString("en-IN")
+                            : "No due date"}
+                        </span>
+                      </div>
+
                       <div className="mt-4">
                         <select
                           value={task.status}
