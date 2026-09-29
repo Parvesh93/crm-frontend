@@ -35,7 +35,7 @@ function Topbar() {
     "Workspace";
 
   return (
-    <header className="sticky top-0 z-30 h-[72px] bg-white/90 backdrop-blur border-b border-slate-200/80">
+    <header className="fixed top-0 right-0 left-0 lg:left-[248px] z-30 h-[72px] bg-white/95 backdrop-blur-md border-b border-slate-200/80">
       <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <button className="lg:hidden p-2 rounded-lg hover:bg-slate-100">
