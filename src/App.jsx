@@ -23,6 +23,7 @@ import EditUser from "./pages/EditUser";
 import Earnings from "./pages/Earnings";
 import AddPayment from "./pages/AddPayment";
 import Settings from "./pages/Settings";
+import Receivables from "./pages/Receivables";
 import useAuthStore from "./store/authStore";
 
 function RootRedirect() {
@@ -68,6 +69,7 @@ function App() {
 <Route path="/earnings" element={<Earnings />} />
 <Route path="/add-payment" element={<AddPayment />} />
 <Route path="/settings" element={<Settings />} />
+<Route path="/receivables" element={<Receivables />} />
 </Route>
       </Routes>
     </BrowserRouter>
