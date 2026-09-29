@@ -8,6 +8,7 @@ import {
   Briefcase,
   Edit,
   Users,
+  CalendarClock,
 } from "lucide-react";
 
 import API from "../api/axios";
@@ -108,6 +109,16 @@ function ProjectDetails() {
           <InfoCard icon={IndianRupee} label="Project Value" value={`₹${Number(project.budget || 0).toLocaleString("en-IN")}`} />
           <InfoCard icon={IndianRupee} label="Received" value={`₹${Number(paymentSummary?.received || 0).toLocaleString("en-IN")}`} />
           <InfoCard icon={IndianRupee} label="Outstanding" value={`₹${Number(paymentSummary?.outstanding || 0).toLocaleString("en-IN")}`} />
+          <InfoCard
+            icon={CalendarClock}
+            label="Payment Due Date"
+            value={project.paymentDueDate ? new Date(project.paymentDueDate).toLocaleDateString("en-IN") : "Not set"}
+          />
+          <InfoCard
+            icon={Briefcase}
+            label="Payment Terms"
+            value={project.paymentTerms || "-"}
+          />
           <InfoCard
             icon={Calendar}
             label="Deadline"
