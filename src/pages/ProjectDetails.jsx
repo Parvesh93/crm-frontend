@@ -13,8 +13,11 @@ import {
 
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
+import useAuthStore from "../store/authStore";
 
 function ProjectDetails() {
+  const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = user?.role === "super_admin";
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,14 +29,25 @@ function ProjectDetails() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [projectRes, tasksRes, paymentRes] = await Promise.all([
+        const requests = [
           API.get(`/projects/${id}`),
           API.get(`/tasks/project/${id}`),
-          API.get(`/payments/project/${id}/summary`),
-        ]);
+        ];
+
+        if (isSuperAdmin) {
+          requests.push(API.get(`/payments/project/${id}/summary`));
+        }
+
+        const results = await Promise.all(requests);
+        const projectRes = results[0];
+        const tasksRes = results[1];
+
         setProject(projectRes.data.project);
         setTasks(tasksRes.data.tasks || []);
-        setPaymentSummary(paymentRes.data);
+
+        if (isSuperAdmin && results[2]) {
+          setPaymentSummary(results[2].data);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -41,7 +55,7 @@ function ProjectDetails() {
       }
     };
     load();
-  }, [id]);
+  }, [id, isSuperAdmin]);
 
   const updateTaskStatus = async (taskId, newStatus) => {
     try {
@@ -106,19 +120,23 @@ function ProjectDetails() {
           <InfoCard icon={User} label="Client" value={project.client?.name || "-"} />
           <InfoCard icon={Briefcase} label="Platform / Service" value={project.platform?.name || project.type || "-"} />
           <InfoCard icon={Users} label="Assigned Team" value={teamNames} />
-          <InfoCard icon={IndianRupee} label="Project Value" value={`₹${Number(project.budget || 0).toLocaleString("en-IN")}`} />
-          <InfoCard icon={IndianRupee} label="Received" value={`₹${Number(paymentSummary?.received || 0).toLocaleString("en-IN")}`} />
-          <InfoCard icon={IndianRupee} label="Outstanding" value={`₹${Number(paymentSummary?.outstanding || 0).toLocaleString("en-IN")}`} />
-          <InfoCard
-            icon={CalendarClock}
-            label="Payment Due Date"
-            value={project.paymentDueDate ? new Date(project.paymentDueDate).toLocaleDateString("en-IN") : "Not set"}
-          />
-          <InfoCard
-            icon={Briefcase}
-            label="Payment Terms"
-            value={project.paymentTerms || "-"}
-          />
+          {isSuperAdmin && (
+            <>
+              <InfoCard icon={IndianRupee} label="Project Value" value={`₹${Number(project.budget || 0).toLocaleString("en-IN")}`} />
+              <InfoCard icon={IndianRupee} label="Received" value={`₹${Number(paymentSummary?.received || 0).toLocaleString("en-IN")}`} />
+              <InfoCard icon={IndianRupee} label="Outstanding" value={`₹${Number(paymentSummary?.outstanding || 0).toLocaleString("en-IN")}`} />
+              <InfoCard
+                icon={CalendarClock}
+                label="Payment Due Date"
+                value={project.paymentDueDate ? new Date(project.paymentDueDate).toLocaleDateString("en-IN") : "Not set"}
+              />
+              <InfoCard
+                icon={Briefcase}
+                label="Payment Terms"
+                value={project.paymentTerms || "-"}
+              />
+            </>
+          )}
           <InfoCard
             icon={Calendar}
             label="Deadline"
@@ -126,7 +144,7 @@ function ProjectDetails() {
           />
         </div>
 
-        {paymentSummary && (
+        {isSuperAdmin && paymentSummary && (
           <div className="mt-8">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-gray-500">Payment collection</span>
