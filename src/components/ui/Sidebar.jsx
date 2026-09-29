@@ -8,6 +8,7 @@ import {
   Columns3,
   UserCog,
   IndianRupee,
+  WalletCards,
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
@@ -55,6 +56,11 @@ function Sidebar() {
   name: "Earnings",
   icon: IndianRupee,
   path: "/earnings",
+},
+{
+  name: "Receivables",
+  icon: WalletCards,
+  path: "/receivables",
 },
     {
       name: "Settings",
