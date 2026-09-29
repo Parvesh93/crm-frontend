@@ -3,8 +3,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import API from "../api/axios";
 import DashboardLayout from "../layout/DashboardLayout";
+import useAuthStore from "../store/authStore";
 
 function EditProject() {
+  const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = user?.role === "super_admin";
   const { id } = useParams();
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
@@ -76,10 +79,15 @@ function EditProject() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.put(`/projects/${id}`, {
-        ...formData,
-        budget: Number(formData.budget || 0),
-      });
+      const payload = { ...formData };
+      if (isSuperAdmin) {
+        payload.budget = Number(formData.budget || 0);
+      } else {
+        delete payload.budget;
+        delete payload.paymentDueDate;
+        delete payload.paymentTerms;
+      }
+      await API.put(`/projects/${id}`, payload);
       navigate(`/projects/${id}`);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update project");
@@ -127,17 +135,19 @@ function EditProject() {
             </div>
           </div>
 
-          <Input label="Budget / Project Value" name="budget" type="number" value={formData.budget} onChange={handleChange} />
+          {isSuperAdmin && <Input label="Budget / Project Value" name="budget" type="number" value={formData.budget} onChange={handleChange} />}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Start Date" name="startDate" type="date" value={formData.startDate} onChange={handleChange} />
             <Input label="Deadline" name="deadline" type="date" value={formData.deadline} onChange={handleChange} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Payment Due Date" name="paymentDueDate" type="date" value={formData.paymentDueDate} onChange={handleChange} />
-            <Input label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={handleChange} />
-          </div>
+          {isSuperAdmin && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Payment Due Date" name="paymentDueDate" type="date" value={formData.paymentDueDate} onChange={handleChange} />
+              <Input label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={handleChange} />
+            </div>
+          )}
 
           <Select label="Status" name="status" value={formData.status} onChange={handleChange}>
             <option value="Pending">Pending</option>
