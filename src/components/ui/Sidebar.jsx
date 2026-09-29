@@ -7,6 +7,7 @@ import {
   Settings,
   Columns3,
   UserCog,
+  IndianRupee,
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
@@ -49,6 +50,11 @@ function Sidebar() {
   name: "Users",
   icon: UserCog,
   path: "/users",
+},
+{
+  name: "Earnings",
+  icon: IndianRupee,
+  path: "/earnings",
 },
     {
       name: "Settings",
