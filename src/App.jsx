@@ -20,6 +20,8 @@ import TaskKanban from "./pages/TaskKanban";
 import Users from "./pages/Users";
 import AddUser from "./pages/AddUser";
 import EditUser from "./pages/EditUser";
+import Earnings from "./pages/Earnings";
+import AddPayment from "./pages/AddPayment";
 
 function App() {
   return (
@@ -51,6 +53,8 @@ function App() {
 <Route path="/users" element={<Users />} />
 <Route path="/add-user" element={<AddUser />} />
 <Route path="/users/:id/edit" element={<EditUser />} />
+<Route path="/earnings" element={<Earnings />} />
+<Route path="/add-payment" element={<AddPayment />} />
 </Route>
       </Routes>
     </BrowserRouter>
