@@ -34,6 +34,13 @@ function RootRedirect() {
   return <Navigate to={token ? "/dashboard" : "/login"} replace />;
 }
 
+function LeadsRoute({ children }) {
+  const user = useAuthStore((state) => state.user);
+  return ["super_admin", "admin", "manager"].includes(user?.role)
+    ? children
+    : <Navigate to="/dashboard" replace />;
+}
+
 function SuperAdminRoute({ children }) {
   const user = useAuthStore((state) => state.user);
   return user?.role === "super_admin" ? children : <Navigate to="/dashboard" replace />;
@@ -78,9 +85,9 @@ function App() {
 <Route path="/add-payment" element={<SuperAdminRoute><AddPayment /></SuperAdminRoute>} />
 <Route path="/settings" element={<SuperAdminRoute><Settings /></SuperAdminRoute>} />
 <Route path="/receivables" element={<SuperAdminRoute><Receivables /></SuperAdminRoute>} />
-<Route path="/leads" element={<Leads />} />
-<Route path="/add-lead" element={<AddLead />} />
-<Route path="/leads/:id" element={<LeadDetails />} />
+<Route path="/leads" element={<LeadsRoute><Leads /></LeadsRoute>} />
+<Route path="/add-lead" element={<LeadsRoute><AddLead /></LeadsRoute>} />
+<Route path="/leads/:id" element={<LeadsRoute><LeadDetails /></LeadsRoute>} />
 </Route>
       </Routes>
     </BrowserRouter>
