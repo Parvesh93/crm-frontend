@@ -27,7 +27,7 @@ function Sidebar() {
       label: "Workspace",
       items: [
         { name: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-        { name: "Leads", icon: Target, path: "/leads" },
+        ...(["super_admin", "admin", "manager"].includes(user?.role) ? [{ name: "Leads", icon: Target, path: "/leads" }] : []),
         { name: "Clients", icon: Users, path: "/clients" },
         { name: "Projects", icon: BriefcaseBusiness, path: "/projects" },
         { name: "Tasks", icon: ListTodo, path: "/tasks" },
