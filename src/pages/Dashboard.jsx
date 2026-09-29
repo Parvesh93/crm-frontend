@@ -24,6 +24,7 @@ import useAuthStore from "../store/authStore";
 function Dashboard() {
   const user = useAuthStore((state) => state.user);
   const isSuperAdmin = user?.role === "super_admin";
+  const canViewLeads = ["super_admin", "admin", "manager"].includes(user?.role);
   const [stats, setStats] = useState({
     totalClients: 0,
     activeProjects: 0,
@@ -86,7 +87,7 @@ function Dashboard() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <QuickAction to="/add-lead" icon={Target} label="New Lead" />
+          {canViewLeads && <QuickAction to="/add-lead" icon={Target} label="New Lead" />}
           <QuickAction to="/add-client" icon={UserPlus} label="New Client" />
           <QuickAction to="/add-project" icon={FolderPlus} label="New Project" />
           <QuickAction to="/add-task" icon={Plus} label="Add Tasks" primary />
@@ -139,47 +140,76 @@ function Dashboard() {
                   icon={ListTodo}
                 />
                 <StatCard
-                  title="Open Leads"
-                  value={stats.openLeads || 0}
-                  subtitle="Active sales opportunities"
-                  icon={Target}
+                  title="Completed Projects"
+                  value={stats.completedProjects || 0}
+                  subtitle="Delivered projects"
+                  icon={CheckCircle2}
                 />
               </>
             )}
           </section>
 
           <section className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <MiniCard
-              label="Open Leads"
-              value={stats.openLeads || 0}
-              helper="Active sales opportunities"
-            />
-            {isSuperAdmin ? (
-              <MiniCard
-                label="Pipeline Value"
-                value={money(stats.pipelineValue)}
-                helper="Potential business value"
-              />
+            {canViewLeads ? (
+              <>
+                <MiniCard
+                  label="Open Leads"
+                  value={stats.openLeads || 0}
+                  helper="Active sales opportunities"
+                />
+                {isSuperAdmin ? (
+                  <MiniCard
+                    label="Pipeline Value"
+                    value={money(stats.pipelineValue)}
+                    helper="Potential business value"
+                  />
+                ) : (
+                  <MiniCard
+                    label="Completed Projects"
+                    value={stats.completedProjects || 0}
+                    helper="Delivered projects"
+                  />
+                )}
+                <MiniCard
+                  label="Follow-ups Today"
+                  value={stats.followUpsToday || 0}
+                  helper="Sales actions due today"
+                />
+                <MiniCard
+                  label="Overdue Follow-ups"
+                  value={stats.overdueFollowUps || 0}
+                  helper="Need immediate attention"
+                  danger
+                />
+              </>
             ) : (
-              <MiniCard
-                label="Completed Projects"
-                value={stats.completedProjects || 0}
-                helper="Delivered projects"
-              />
+              <>
+                <MiniCard
+                  label="Open Tasks"
+                  value={stats.openTasks || 0}
+                  helper="Pending + in progress"
+                />
+                <MiniCard
+                  label="Completed Tasks"
+                  value={stats.completedTasks || 0}
+                  helper="Finished tasks"
+                />
+                <MiniCard
+                  label="Active Projects"
+                  value={stats.activeProjects || 0}
+                  helper="Currently in delivery"
+                />
+                <MiniCard
+                  label="Completed Projects"
+                  value={stats.completedProjects || 0}
+                  helper="Delivered projects"
+                />
+              </>
             )}
-            <MiniCard
-              label="Follow-ups Today"
-              value={stats.followUpsToday || 0}
-              helper="Sales actions due today"
-            />
-            <MiniCard
-              label="Overdue Follow-ups"
-              value={stats.overdueFollowUps || 0}
-              helper="Need immediate attention"
-              danger
-            />
           </section>
 
+          {canViewLeads && (
+            <>
           <section className="mt-6 grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
             <div className="bg-white border border-slate-200/80 rounded-2xl p-6">
               <div className="flex items-start justify-between gap-4 mb-5">
@@ -304,6 +334,9 @@ function Dashboard() {
 
           {isSuperAdmin && (
             <>
+            </>
+          )}
+
           <section className="mt-6 grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
             <div className="bg-white border border-slate-200/80 rounded-2xl p-6">
               <div className="flex items-start justify-between gap-4 mb-6">
