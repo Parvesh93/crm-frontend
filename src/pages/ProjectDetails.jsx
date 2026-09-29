@@ -20,16 +20,19 @@ function ProjectDetails() {
   const [tasks, setTasks] = useState([]);
   const [aiSummary, setAiSummary] = useState("");
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [paymentSummary, setPaymentSummary] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [projectRes, tasksRes] = await Promise.all([
+        const [projectRes, tasksRes, paymentRes] = await Promise.all([
           API.get(`/projects/${id}`),
           API.get(`/tasks/project/${id}`),
+          API.get(`/payments/project/${id}/summary`),
         ]);
         setProject(projectRes.data.project);
         setTasks(tasksRes.data.tasks || []);
+        setPaymentSummary(paymentRes.data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -103,12 +106,29 @@ function ProjectDetails() {
           <InfoCard icon={Briefcase} label="Platform / Service" value={project.platform?.name || project.type || "-"} />
           <InfoCard icon={Users} label="Assigned Team" value={teamNames} />
           <InfoCard icon={IndianRupee} label="Project Value" value={`₹${Number(project.budget || 0).toLocaleString("en-IN")}`} />
+          <InfoCard icon={IndianRupee} label="Received" value={`₹${Number(paymentSummary?.received || 0).toLocaleString("en-IN")}`} />
+          <InfoCard icon={IndianRupee} label="Outstanding" value={`₹${Number(paymentSummary?.outstanding || 0).toLocaleString("en-IN")}`} />
           <InfoCard
             icon={Calendar}
             label="Deadline"
             value={project.deadline ? new Date(project.deadline).toLocaleDateString() : "-"}
           />
         </div>
+
+        {paymentSummary && (
+          <div className="mt-8">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-500">Payment collection</span>
+              <span className="font-semibold">{Number(paymentSummary.collectionPercent || 0).toFixed(0)}%</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-black rounded-full"
+                style={{ width: `${Math.min(100, Number(paymentSummary.collectionPercent || 0))}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="mt-8">
           <h2 className="font-semibold text-lg">Notes</h2>
