@@ -10,6 +10,7 @@ import {
   WalletCards,
   Settings,
   Target,
+  Bot,
   LogOut,
   ChevronRight,
 } from "lucide-react";
@@ -28,6 +29,7 @@ function Sidebar() {
       items: [
         { name: "Overview", icon: LayoutDashboard, path: "/dashboard" },
         ...(["super_admin", "admin", "manager"].includes(user?.role) ? [{ name: "Leads", icon: Target, path: "/leads" }] : []),
+        ...(user?.role === "super_admin" ? [{ name: "Sales Agent", icon: Bot, path: "/sales-agent" }] : []),
         { name: "Clients", icon: Users, path: "/clients" },
         { name: "Projects", icon: BriefcaseBusiness, path: "/projects" },
         { name: "Tasks", icon: ListTodo, path: "/tasks" },
