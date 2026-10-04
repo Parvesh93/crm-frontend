@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import API from "../api/axios";
 
@@ -77,13 +77,6 @@ function Login() {
             Login
           </button>
         </form>
-
-        <p className="text-center mt-4">
-          Don’t have an account?{" "}
-          <Link to="/register" className="font-semibold">
-            Register
-          </Link>
-        </p>
       </div>
     </div>
   );
