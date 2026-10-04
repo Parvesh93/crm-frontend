@@ -45,7 +45,7 @@ function SalesAgent() {
   const runAgent = async () => {
     if (
       !window.confirm(
-        "Run Sales Agent now? It will search the web, qualify prospects and add qualified leads to the CRM."
+        "Sync qualified leads from the Google Sheet into PPDT CRM now?"
       )
     ) {
       return;
@@ -75,15 +75,13 @@ function SalesAgent() {
         <div>
           <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
             <Bot size={17} />
-            Automated prospecting
+            Lead sync automation
           </div>
           <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-950 mt-1">
             Sales Agent
           </h1>
           <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-            Finds public business prospects, discovers business emails,
-            qualifies opportunities with AI and adds qualified leads into
-            the CRM.
+            Imports qualified prospects from the PPDT lead spreadsheet into the CRM, removes duplicates and keeps the sales pipeline in sync.
           </p>
         </div>
 
@@ -103,10 +101,10 @@ function SalesAgent() {
           >
             <Play size={16} />
             {latest?.status === "running"
-              ? "Agent Running"
+              ? "Sync Running"
               : starting
               ? "Starting..."
-              : "Run Agent"}
+              : "Sync Leads"}
           </button>
         </div>
       </div>
@@ -120,17 +118,17 @@ function SalesAgent() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
         <StatusCard
           icon={Search}
-          label="Search Provider"
-          value={config.searchConfigured ? "Connected" : "Not configured"}
-          detail={config.provider || "serper"}
-          ok={config.searchConfigured}
+          label="Google Sheet"
+          value={config.sheetsConfigured ? "Connected" : "Not configured"}
+          detail={config.sheetName || "Leads"}
+          ok={config.sheetsConfigured}
         />
         <StatusCard
-          icon={Bot}
-          label="AI Qualification"
-          value={config.aiConfigured ? "Connected" : "Not configured"}
-          detail={"Minimum score " + (config.minScore || 65)}
-          ok={config.aiConfigured}
+          icon={Mail}
+          label="Import Trigger"
+          value={config.sourceStatus || "Qualified - not contacted"}
+          detail={"After import: " + (config.importedStatus || "Imported to CRM")}
+          ok
         />
         <StatusCard
           icon={Clock3}
@@ -183,10 +181,10 @@ function SalesAgent() {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <Metric label="Prospects found" value={latest.found || 0} />
-                <Metric label="Business emails" value={latest.withEmail || 0} />
-                <Metric label="Qualified" value={latest.qualified || 0} />
-                <Metric label="Added to CRM" value={latest.inserted || 0} />
+                <Metric label="Rows reviewed" value={latest.found || 0} />
+                <Metric label="Rows with email" value={latest.withEmail || 0} />
+                <Metric label="Eligible" value={latest.qualified || 0} />
+                <Metric label="Imported to CRM" value={latest.inserted || 0} />
                 <Metric label="Duplicates" value={latest.duplicates || 0} />
                 <Metric label="Rejected" value={latest.rejected || 0} />
               </div>
@@ -218,33 +216,31 @@ function SalesAgent() {
 
         <div className="bg-white border border-slate-200 rounded-2xl p-5">
           <p className="text-sm font-semibold text-slate-900">
-            Prospecting Rules
+            Sheet Sync Rules
           </p>
           <p className="text-xs text-slate-500 mt-1 mb-5">
-            Current Phase 1 settings from the backend environment.
+            Current Google Sheet import settings from the backend environment.
           </p>
 
           <InfoRow
-            label="Services"
-            value={(config.services || []).join(", ") || "-"}
+            label="Sheet"
+            value={config.sheetName || "Leads"}
           />
           <InfoRow
-            label="Results per query"
-            value={config.resultsPerQuery ?? "-"}
+            label="Import status"
+            value={config.sourceStatus || "Qualified - not contacted"}
           />
           <InfoRow
-            label="Queries per run"
-            value={config.maxQueriesPerRun ?? "-"}
+            label="Imported status"
+            value={config.importedStatus || "Imported to CRM"}
           />
           <InfoRow
-            label="Qualification threshold"
-            value={(config.minScore || 65) + "/100"}
+            label="Max rows per sync"
+            value={config.maxRowsPerRun ?? 100}
           />
 
           <div className="mt-5 rounded-xl bg-amber-50 border border-amber-100 p-3 text-xs text-amber-800 leading-5">
-            Phase 1 does not send outreach emails. It only discovers,
-            qualifies and creates leads. Email sending and follow-ups will
-            be enabled separately in Phase 2.
+            ChatGPT handles daily lead research and writes qualified prospects to the sheet. The CRM only imports those rows in Phase 1. Email sending and follow-ups will be enabled separately in Phase 2.
           </div>
         </div>
       </div>
