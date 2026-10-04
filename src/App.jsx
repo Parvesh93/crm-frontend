@@ -26,6 +26,7 @@ import Receivables from "./pages/Receivables";
 import Leads from "./pages/Leads";
 import AddLead from "./pages/AddLead";
 import LeadDetails from "./pages/LeadDetails";
+import SalesAgent from "./pages/SalesAgent";
 import useAuthStore from "./store/authStore";
 
 function RootRedirect() {
@@ -86,6 +87,7 @@ function App() {
 <Route path="/leads" element={<LeadsRoute><Leads /></LeadsRoute>} />
 <Route path="/add-lead" element={<LeadsRoute><AddLead /></LeadsRoute>} />
 <Route path="/leads/:id" element={<LeadsRoute><LeadDetails /></LeadsRoute>} />
+<Route path="/sales-agent" element={<SuperAdminRoute><SalesAgent /></SuperAdminRoute>} />
 </Route>
       </Routes>
     </BrowserRouter>
