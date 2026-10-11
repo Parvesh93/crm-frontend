@@ -35,6 +35,8 @@ function LeadDetails() {
   const [loading, setLoading] = useState(true);
   const [showConvert, setShowConvert] = useState(false);
   const [error, setError] = useState("");
+  const [emailPreview, setEmailPreview] = useState(null);
+  const [previewing, setPreviewing] = useState(false);
   const [convertData, setConvertData] = useState({
     createProject: true,
     projectTitle: "",
@@ -76,6 +78,18 @@ function LeadDetails() {
       setLead(res.data.lead);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update lead");
+    }
+  };
+
+  const previewEmail = async () => {
+    try {
+      setPreviewing(true);
+      const res = await API.get(`/outreach/preview/${id}`);
+      setEmailPreview(res.data.preview || null);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to generate email preview");
+    } finally {
+      setPreviewing(false);
     }
   };
 
@@ -154,6 +168,15 @@ function LeadDetails() {
               {STAGES.map((item) => <option key={item}>{item}</option>)}
             </select>
 
+            {isSuperAdmin && lead.email && !lead.convertedClient && (
+              <button
+                onClick={previewEmail}
+                className="border border-slate-200 bg-white px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700"
+              >
+                {previewing ? "Generating..." : "Preview Email"}
+              </button>
+            )}
+
             {!lead.convertedClient && (
               <button
                 onClick={() => setShowConvert((value) => !value)}
@@ -164,6 +187,24 @@ function LeadDetails() {
             )}
           </div>
         </div>
+
+        {emailPreview && (
+          <div className="mt-6 border border-slate-200 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 bg-slate-50 border-b border-slate-200">
+              <p className="text-sm font-semibold text-slate-900">Personalized Email Preview</p>
+              <p className="text-xs text-slate-500 mt-1">{emailPreview.source}</p>
+            </div>
+            <div className="p-5">
+              <p className="text-xs text-slate-400">To</p>
+              <p className="text-sm text-slate-700 mt-1">{emailPreview.email}</p>
+              <p className="text-xs text-slate-400 mt-4">Subject</p>
+              <p className="text-sm font-semibold text-slate-900 mt-1">{emailPreview.subject}</p>
+              <div className="mt-4 rounded-xl bg-slate-50 border border-slate-100 p-4">
+                <p className="whitespace-pre-line text-sm leading-6 text-slate-700">{emailPreview.body}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
           <Info icon={Building2} label="Company" value={lead.company || "-"} />
