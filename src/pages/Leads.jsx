@@ -35,6 +35,8 @@ function Leads() {
   const [platform, setPlatform] = useState("");
   const [owner, setOwner] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const load = async () => {
     try {
@@ -77,8 +79,76 @@ function Leads() {
     try {
       await API.delete(`/leads/${id}`);
       setLeads((current) => current.filter((lead) => lead._id !== id));
+      setSelectedIds((current) => current.filter((item) => item !== id));
+      const summaryRes = await API.get("/leads/summary");
+      setSummary(summaryRes.data || {});
     } catch (error) {
       alert(error.response?.data?.message || "Delete failed");
+    }
+  };
+
+  const toggleSelected = (id) => {
+    setSelectedIds((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id]
+    );
+  };
+
+  const selectAllFiltered = () => {
+    const filteredIds = filtered.map((lead) => lead._id);
+    const allSelected =
+      filteredIds.length > 0 &&
+      filteredIds.every((id) => selectedIds.includes(id));
+
+    if (allSelected) {
+      setSelectedIds((current) =>
+        current.filter((id) => !filteredIds.includes(id))
+      );
+      return;
+    }
+
+    setSelectedIds((current) => [
+      ...new Set([...current, ...filteredIds]),
+    ]);
+  };
+
+  const bulkDelete = async () => {
+    if (!selectedIds.length) return;
+
+    if (
+      !window.confirm(
+        `Delete ${selectedIds.length} selected lead(s)? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setBulkDeleting(true);
+      const res = await API.delete("/leads/bulk", {
+        data: { ids: selectedIds },
+      });
+
+      const deleted = new Set(selectedIds);
+      setLeads((current) =>
+        current.filter((lead) => !deleted.has(lead._id))
+      );
+      setSelectedIds([]);
+
+      const summaryRes = await API.get("/leads/summary");
+      setSummary(summaryRes.data || {});
+
+      alert(
+        res.data?.message ||
+          `${selectedIds.length} lead(s) deleted successfully`
+      );
+    } catch (error) {
+      alert(
+        error.response?.data?.message || "Bulk delete failed"
+      );
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -160,6 +230,24 @@ function Leads() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        {selectedIds.length > 0 && (
+          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-sm text-slate-700">
+              <span className="font-semibold">{selectedIds.length}</span>{" "}
+              lead{selectedIds.length === 1 ? "" : "s"} selected
+            </div>
+
+            <button
+              onClick={bulkDelete}
+              disabled={bulkDeleting}
+              className="inline-flex items-center justify-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+            >
+              <Trash2 size={16} />
+              {bulkDeleting ? "Deleting..." : "Delete Selected"}
+            </button>
+          </div>
+        )}
+
         <div className="p-4 border-b border-slate-200">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_190px_190px_190px] gap-3">
             <div className="relative">
@@ -202,6 +290,20 @@ function Leads() {
             <table className="w-full min-w-[1100px] text-left">
               <thead className="bg-slate-50">
                 <tr className="text-xs uppercase tracking-wide text-slate-400 border-b border-slate-200">
+                  <th className="px-5 py-3 font-semibold w-12">
+                    <input
+                      type="checkbox"
+                      checked={
+                        filtered.length > 0 &&
+                        filtered.every((lead) =>
+                          selectedIds.includes(lead._id)
+                        )
+                      }
+                      onChange={selectAllFiltered}
+                      aria-label="Select all filtered leads"
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                  </th>
                   <th className="px-5 py-3 font-semibold">Lead</th>
                   <th className="px-5 py-3 font-semibold">Service</th>
                   <th className="px-5 py-3 font-semibold">Owner</th>
@@ -214,7 +316,16 @@ function Leads() {
 
               <tbody>
                 {filtered.map((lead) => (
-                  <tr key={lead._id} className="border-b border-slate-100 hover:bg-slate-50/60">
+                  <tr key={lead._id} className={"border-b border-slate-100 hover:bg-slate-50/60 " + (selectedIds.includes(lead._id) ? "bg-slate-50" : "")}>
+                    <td className="px-5 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(lead._id)}
+                        onChange={() => toggleSelected(lead._id)}
+                        aria-label={"Select " + (lead.company || lead.name)}
+                        className="h-4 w-4 rounded border-slate-300"
+                      />
+                    </td>
                     <td className="px-5 py-4">
                       <p className="text-sm font-semibold text-slate-900">{lead.name}</p>
                       <p className="text-xs text-slate-400 mt-1">
