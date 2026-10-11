@@ -21,12 +21,21 @@ function SalesAgent() {
   });
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [outreachStarting, setOutreachStarting] = useState(false);
+  const [outreach, setOutreach] = useState({
+    config: {},
+    recentRuns: [],
+  });
   const [message, setMessage] = useState("");
 
   const load = async () => {
     try {
-      const res = await API.get("/sales-agent/status");
-      setData(res.data || {});
+      const [salesRes, outreachRes] = await Promise.all([
+        API.get("/sales-agent/status"),
+        API.get("/outreach/status"),
+      ]);
+      setData(salesRes.data || {});
+      setOutreach(outreachRes.data || {});
     } catch (error) {
       setMessage(
         error.response?.data?.message || "Failed to load Sales Agent"
@@ -66,8 +75,35 @@ function SalesAgent() {
     }
   };
 
+  const runOutreach = async () => {
+    if (
+      !window.confirm(
+        "Send scheduled outreach now to currently eligible qualified leads?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setOutreachStarting(true);
+      setMessage("");
+      const res = await API.post("/outreach/run");
+      setMessage(res.data?.message || "Outreach run started");
+      setTimeout(load, 2000);
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message || "Failed to start outreach"
+      );
+    } finally {
+      setOutreachStarting(false);
+    }
+  };
+
   const config = data.config || {};
   const latest = data.latest;
+  const outreachConfig = outreach.config || {};
+  const outreachRuns = outreach.recentRuns || [];
+  const latestOutreach = outreachRuns[0];
 
   return (
     <DashboardLayout>
@@ -148,6 +184,73 @@ function SalesAgent() {
           detail={(config.markets || []).join(", ") || "-"}
           ok
         />
+      </div>
+
+
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-5">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <Mail size={17} />
+              Email Outreach
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Sends initial emails to qualified Email Outreach leads using your configured SMTP mailbox.
+            </p>
+          </div>
+
+          <button
+            onClick={runOutreach}
+            disabled={outreachStarting || latestOutreach?.status === "running"}
+            className="inline-flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50"
+          >
+            <Play size={16} />
+            {outreachStarting ? "Starting..." : "Send Outreach Now"}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mt-5">
+          <Metric
+            label="SMTP"
+            value={outreachConfig.smtpConfigured ? "Connected" : "Not configured"}
+          />
+          <Metric
+            label="Automation"
+            value={outreachConfig.enabled ? "Enabled" : "Disabled"}
+          />
+          <Metric
+            label="Daily Limit"
+            value={outreachConfig.dailyLimit ?? 30}
+          />
+          <Metric
+            label="Send Window"
+            value={(outreachConfig.startHour ?? 10) + ":00-" + (outreachConfig.endHour ?? 17) + ":00"}
+          />
+          <Metric
+            label="Follow-ups"
+            value={outreachConfig.followUpsEnabled ? "Enabled" : "Paused"}
+          />
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+            <p className="text-xs font-medium text-slate-500">Latest outreach run</p>
+            {latestOutreach ? (
+              <div className="grid grid-cols-4 gap-3 mt-3">
+                <Metric label="Candidates" value={latestOutreach.candidates || 0} />
+                <Metric label="Sent" value={latestOutreach.sent || 0} />
+                <Metric label="Skipped" value={latestOutreach.skipped || 0} />
+                <Metric label="Failed" value={latestOutreach.failed || 0} />
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400 mt-3">No outreach runs yet.</p>
+            )}
+          </div>
+
+          <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 text-xs text-amber-800 leading-5">
+            Automatic follow-ups are intentionally paused until reply monitoring is connected. Initial qualified-lead emails can run on schedule now without risking follow-ups after someone has replied.
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_.85fr] gap-5 mb-5">
