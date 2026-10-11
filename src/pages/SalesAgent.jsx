@@ -108,6 +108,7 @@ function SalesAgent() {
   const outreachConfig = outreach.config || {};
   const outreachRuns = outreach.recentRuns || [];
   const latestOutreach = outreachRuns[0];
+  const outreachDiagnostics = outreach.diagnostics || {};
 
   return (
     <DashboardLayout>
@@ -234,18 +235,43 @@ function SalesAgent() {
             label="Follow-ups"
             value={outreachConfig.followUpsEnabled ? "Enabled" : "Paused"}
           />
+          <Metric
+            label="Eligible Now"
+            value={outreachDiagnostics.eligible ?? 0}
+          />
         </div>
 
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+            <p className="text-xs font-medium text-slate-500">Eligibility diagnostics</p>
+            <div className="grid grid-cols-2 gap-2 mt-3 text-xs text-slate-600">
+              <span>With email</span><strong className="text-right">{outreachDiagnostics.withEmail ?? 0}</strong>
+              <span>Imported/outreach</span><strong className="text-right">{outreachDiagnostics.importedOrOutreach ?? 0}</strong>
+              <span>New leads</span><strong className="text-right">{outreachDiagnostics.newLeads ?? 0}</strong>
+              <span>Missing draft</span><strong className="text-right">{outreachDiagnostics.missingDraft ?? 0}</strong>
+            </div>
+          </div>
           <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
             <p className="text-xs font-medium text-slate-500">Latest outreach run</p>
             {latestOutreach ? (
+              <>
+              <div className="flex items-center justify-between gap-2 mt-2">
+                <span className={"px-2.5 py-1 rounded-full text-xs font-semibold " + statusClass(latestOutreach.status)}>
+                  {latestOutreach.status}
+                </span>
+              </div>
               <div className="grid grid-cols-4 gap-3 mt-3">
                 <Metric label="Candidates" value={latestOutreach.candidates || 0} />
                 <Metric label="Sent" value={latestOutreach.sent || 0} />
                 <Metric label="Skipped" value={latestOutreach.skipped || 0} />
                 <Metric label="Failed" value={latestOutreach.failed || 0} />
               </div>
+              {latestOutreach.errors?.length > 0 && (
+                <div className="mt-3 rounded-xl bg-rose-50 border border-rose-100 p-3 text-xs text-rose-700">
+                  {latestOutreach.errors.join(" | ")}
+                </div>
+              )}
+              </>
             ) : (
               <p className="text-sm text-slate-400 mt-3">No outreach runs yet.</p>
             )}
