@@ -26,16 +26,20 @@ function SalesAgent() {
     config: {},
     recentRuns: [],
   });
+  const [previews, setPreviews] = useState([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const load = async () => {
     try {
-      const [salesRes, outreachRes] = await Promise.all([
+      const [salesRes, outreachRes, previewRes] = await Promise.all([
         API.get("/sales-agent/status"),
         API.get("/outreach/status"),
+        API.get("/outreach/preview/upcoming?limit=5"),
       ]);
       setData(salesRes.data || {});
       setOutreach(outreachRes.data || {});
+      setPreviews(previewRes.data?.previews || []);
     } catch (error) {
       setMessage(
         error.response?.data?.message || "Failed to load Sales Agent"
@@ -251,6 +255,60 @@ function SalesAgent() {
             Automatic follow-ups are intentionally paused until reply monitoring is connected. Initial qualified-lead emails can run on schedule now without risking follow-ups after someone has replied.
           </div>
         </div>
+      </div>
+
+
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Upcoming Email Previews</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Exact subject and personalized body that the CRM would send next.
+            </p>
+          </div>
+          <button
+            onClick={load}
+            className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 rounded-xl text-xs font-medium text-slate-700"
+          >
+            <RefreshCw size={14} />
+            Refresh
+          </button>
+        </div>
+
+        {previews.length === 0 ? (
+          <div className="py-8 text-center text-sm text-slate-400">
+            No eligible outreach emails are waiting.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {previews.map((preview) => (
+              <div key={preview.leadId} className="border border-slate-200 rounded-xl p-4">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {preview.company || preview.name}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {preview.email} {preview.platform ? "• " + preview.platform : ""}
+                    </p>
+                  </div>
+                  <span className="self-start px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
+                    {preview.source}
+                  </span>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-400">Subject</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-1">{preview.subject}</p>
+                </div>
+
+                <div className="mt-4 rounded-xl bg-slate-50 border border-slate-100 p-4">
+                  <p className="whitespace-pre-line text-sm leading-6 text-slate-700">{preview.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_.85fr] gap-5 mb-5">
