@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import API from "../api/axios";
 
@@ -72,6 +72,15 @@ function Login() {
             onChange={handleChange}
             className="w-full border p-3 rounded"
           />
+
+          <div className="flex justify-end">
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-gray-600 hover:text-black"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <button className="w-full bg-black text-white py-3 rounded font-semibold">
             Login
