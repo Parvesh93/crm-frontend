@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import AddClient from "./pages/AddClient";
@@ -58,6 +60,8 @@ function App() {
         <Route path="/" element={<RootRedirect />} />
 
         <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+<Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
+<Route path="/reset-password/:token" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
 
         <Route element={<ProtectedRoute />}>
   <Route path="/dashboard" element={<Dashboard />} />
