@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import API from "../api/axios";
 
@@ -8,6 +8,7 @@ import useAuthStore from "../store/authStore";
 
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const login = useAuthStore((state) => state.login);
 
@@ -47,6 +48,12 @@ function Login() {
         <h1 className="text-3xl font-bold mb-6 text-center">
           Login
         </h1>
+
+        {searchParams.get("session") === "expired" && !error && (
+          <div className="bg-amber-50 text-amber-700 border border-amber-100 p-3 rounded mb-4 text-sm">
+            Your session expired or became invalid. Please log in again.
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
