@@ -15,3 +15,29 @@ API.interceptors.request.use((config) => {
 });
 
 export default API;
+
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const message = String(error.response?.data?.message || "");
+
+    if (
+      status === 401 &&
+      /not authorized|token failed|no token|user not found/i.test(message)
+    ) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      if (
+        window.location.pathname !== "/login" &&
+        window.location.pathname !== "/forgot-password" &&
+        !window.location.pathname.startsWith("/reset-password/")
+      ) {
+        window.location.replace("/login?session=expired");
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
